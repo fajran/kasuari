@@ -59,7 +59,6 @@ function addImage(kasuari, zoomLevel, ix, iy) {
 	var scale = kasuari.scale;
 	var w = Math.ceil(kasuari.tw * scale);
 	var h = Math.ceil(kasuari.th * scale);
-	console.log('addImage: scale=', scale, 'w=', w, 'h=', h);
 
 	img.data('id', zoomLevel+'-'+ix+'-'+iy);
 
@@ -117,7 +116,6 @@ function updateImages(kasuari) {
 		var o = kasuari.images[i];
 		var id = o.data('id');
 		if (add[id] == undefined) {
-			console.log('Remove: id=', o.data('id'));
 			o.remove();
 		}
 		else {
@@ -193,6 +191,7 @@ var Kasuari = function(s, config) {
 	this.scale = 1;
 	this.zoomInLimit = 1.25;
 	this.zoomOutLimit = 1.0/this.zoomStep;
+	this.timer = undefined;
 	
 	// projected image size
 	this.piw = Math.ceil(this.config.w / this.step);
@@ -227,24 +226,19 @@ Kasuari.prototype = {
 		this.drag.enabled = true;
 		this.drag.x = e.clientX;
 		this.drag.y = e.clientY;
+		this.drag.dx = this.px - e.clientX;
+		this.drag.dy = this.py - e.clientY;
 	},
 
 	mousemove: function(e) {
 		if (this.drag.enabled) {
-			var x = e.clientX;
-			var y = e.clientY;
-			var dx = x - this.drag.x;
-			var dy = y - this.drag.y;
-			this.drag.x = x;
-			this.drag.y = y;
+			this.drag.x = e.clientX;
+			this.drag.y = e.clientY;
 
-			moveImages(this, dx, dy);
-
-			this.px += dx;
-			this.py += dy;
-
-			updateImages(this);
-			updateImagePosition(this);
+			if (!this.timer) {
+				var self = this;
+				this.timer = setTimeout(function() { self.smoothmove(self) }, 20);
+			}
 		}
 	},
 
@@ -252,7 +246,34 @@ Kasuari.prototype = {
 		this.drag.enabled = false;
 	},
 
+	smoothmove: function(self) {
+		var px = self.drag.x + self.drag.dx;
+		var py = self.drag.y + self.drag.dy;
+		var dx = px - self.px;
+		var dy = py - self.py;
+		dx = Math.ceil(dx * 0.1);
+		dy = Math.ceil(dy * 0.1);
+
+		moveImages(self, dx, dy);
+		self.px += dx;
+		self.py += dy;
+
+		updateImages(self);
+		updateImagePosition(self);
+
+		if ((dx != 0) || (dy != 0)) {
+			self.timer = setTimeout(function() { self.smoothmove(self) }, 20);
+		}
+		else {
+			clearTimeout(self.timer);
+			self.timer = undefined;
+		}
+	},
+
 	zoom: function(x, y, zoom) {
+		clearTimeout(this.timer);
+		this.timer = undefined;
+
 		var zoomLevel = this.zoomLevel;
 		var scale = this.scale * zoom;
 		if ((zoomLevel > 0) && (scale > this.zoomInLimit)) {
@@ -284,14 +305,8 @@ Kasuari.prototype = {
 			this.pih = Math.ceil(this.config.h / this.step);
 		}
 
-		//var px = this.px;
-		//var py = this.py;
 		this.px = x - (x - this.px) * zoom;
 		this.py = y - (y - this.py) * zoom;
-
-		//console.log(px, py, this.px, this.py, x, y, zoom, this.scale);
-
-		console.log('zoom:', zoom, x, y, this.scale, this.zoomLevel);
 
 		var w = Math.ceil(this.tw * this.scale);
 		var h = Math.ceil(this.th * this.scale);
@@ -307,8 +322,6 @@ Kasuari.prototype = {
 			img.data('h', h);
 
 		}
-
-		console.log('zoom: scale=', this.scale);
 
 		this.updateCanvas();
 	},
