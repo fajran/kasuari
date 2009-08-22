@@ -48,12 +48,12 @@ function moveImages(kasuari, dx, dy) {
 	};
 }
 
-function addImage(kasuari, zoom, ix, iy, x, y) {
-	var url = kasuari.config.imgdir + '/img-z' + zoom + '.x' + ix + '.y' + iy + '.jpg';
+function addImage(kasuari, zoomLevel, ix, iy, x, y) {
+	var url = kasuari.config.imgdir + '/img-z' + zoomLevel + '.x' + ix + '.y' + iy + '.jpg';
 	var img = $('<img class="img" style="top:'+y+'px; left:'+x+'px" src="'+url+'"/>');
 	img.data('x', x);
 	img.data('y', y);
-	img.data('id', zoom+'-'+ix+'-'+iy);
+	img.data('id', zoomLevel+'-'+ix+'-'+iy);
 	img.mousedown(function(e) { return false; });
 	kasuari.obj.append(img);
 	kasuari.images.push(img);
@@ -66,7 +66,7 @@ var Kasuari = function(s, config) {
 		th: 256,
 		x: 0,
 		y: 0,
-		zoom: -1
+		zoomLevel: -1
 	}
 
 	// override configuration
@@ -78,8 +78,8 @@ var Kasuari = function(s, config) {
 	this.obj = $(s);
 	this.maxZoomLevel = getMaxLevel(this.config);
 
-	if (this.config.zoom == -1) { this.zoom = this.maxZoomLevel; }
-	else { this.zoom = this.config.zoom; }
+	if (this.config.zoomLevel == -1) { this.zoomLevel = this.maxZoomLevel; }
+	else { this.zoomLevel = this.config.zoomLevel; }
 
 	this.tw = this.config.tw;
 	this.th = this.config.th;
@@ -88,7 +88,7 @@ var Kasuari = function(s, config) {
 
 	this.cw = this.obj.width();
 	this.ch = this.obj.height();
-	this.step = Math.pow(2, this.zoom);
+	this.step = Math.pow(2, this.zoomLevel);
 	
 	// projected image size
 	this.piw = Math.ceil(this.config.w / this.step);
@@ -144,7 +144,7 @@ Kasuari.prototype = {
 				var px = x * this.tw;
 				var py = y * this.th;
 
-				add[this.zoom+'-'+x+'-'+y] = [ x, y, px, py ];
+				add[this.zoomLevel+'-'+x+'-'+y] = [ x, y, px, py ];
 			}
 		}
 
@@ -167,7 +167,7 @@ Kasuari.prototype = {
 
 		for (var k in add) {
 			var d = add[k];
-			addImage(this, this.zoom, d[0], d[1], d[2] + this.px, d[3] + this.py);
+			addImage(this, this.zoomLevel, d[0], d[1], d[2] + this.px, d[3] + this.py);
 		}
 	},
 
@@ -200,13 +200,13 @@ Kasuari.prototype = {
 	},
 
 	zoomIn: function(e) {
-		if (this.zoom <= 0) return;
+		if (this.zoomLevel <= 0) return;
 
 		var x = e.clientX;
 		var y = e.clientY;
 
-		this.zoom--;
-		this.step = Math.pow(2, this.zoom);
+		this.zoomLevel--;
+		this.step = Math.pow(2, this.zoomLevel);
 		
 		// projected image size
 		this.piw = Math.ceil(this.config.w / this.step);
