@@ -28,8 +28,14 @@ function setupEventHandler(kasuari) {
 	kasuari.obj.dblclick(function(e) {
 		kasuari.zoom(e.clientX, e.clientY, 1.5);
 	});
-	kasuari.obj.scroll(function(e) {
-		console.log(e);
+	kasuari.obj.mousewheel(function(e, d) {
+		if (d > 0) {
+			kasuari.zoom(e.clientX, e.clientY, 1.5);
+		}
+		else {
+			kasuari.zoom(e.clientX, e.clientY, 2/3.0);
+		}
+		return false;
 	});
 }
 
@@ -257,10 +263,13 @@ Kasuari.prototype = {
 				zoomLevel = 0;
 			}
 		}
-		else if (scale < this.zoomOutLimit) {
+		else if ((zoomLevel < this.maxZoomLevel) && (scale < this.zoomOutLimit)) {
 			while (scale < this.zoomOutLimit) {
 				zoomLevel++;
-				scale = scale / this.zoomStep;
+				scale = scale * this.zoomStep;
+			}
+			if (zoomLevel > this.maxZoomLevel) {
+				zoomLevel = this.maxZoomLevel;
 			}
 		}
 
