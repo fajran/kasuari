@@ -9,3 +9,8 @@ If you are familiar with Google Maps, then you should also familiar with
 Kasuari. In fact, both are using the same technique to view a very large
 image, such as a world map.
 
+Demo
+====
+
+* [Full Circle Magazine 26](http://labs.fajran.web.id/p/kasuari/full-circle-magazine-26/) - 69 MP
+
