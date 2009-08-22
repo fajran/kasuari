@@ -1,0 +1,21 @@
+<html><head>
+<link rel="stylesheet" type="text/css" href="style.css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="kasuari.js"></script>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	var kasuari = new Kasuari('#kc', {
+		zoom: 3,
+		//imgdir: 'img2', w: 16965, h:8230
+		imgdir: 'img', w: 2000, h: 1500
+	});
+	kasuari.start();
+});
+
+</script>
+</head><body>
+<div id="kc" class="kasuari">
+
+</div>
+</body></html>
