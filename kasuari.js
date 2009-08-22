@@ -184,7 +184,7 @@ var Kasuari = function(s, config) {
 	this.ch = this.obj.height();
 	this.step = Math.pow(this.zoomStep, this.zoomLevel);
 	this.scale = 1;
-	this.zoomInLimit = this.zoomStep;
+	this.zoomInLimit = 1.25;
 	this.zoomOutLimit = 1.0/this.zoomStep;
 	
 	// projected image size
