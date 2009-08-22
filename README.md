@@ -1,0 +1,11 @@
+Kasuari
+=======
+
+Kasuari is a web-based multi-scale image viewer. With Kasuari, you can view
+a very large image on a web browser. You can zoom in and out to see more or
+less detailed view of the image.
+
+If you are familiar with Google Maps, then you should also familiar with
+Kasuari. In fact, both are using the same technique to view a very large
+image, such as a world map.
+
