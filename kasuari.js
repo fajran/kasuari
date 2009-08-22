@@ -251,8 +251,8 @@ Kasuari.prototype = {
 		var py = self.drag.y + self.drag.dy;
 		var dx = px - self.px;
 		var dy = py - self.py;
-		dx = Math.ceil(dx * 0.1);
-		dy = Math.ceil(dy * 0.1);
+		dx = Math.ceil(dx * 0.2);
+		dy = Math.ceil(dy * 0.2);
 
 		moveImages(self, dx, dy);
 		self.px += dx;
