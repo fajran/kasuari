@@ -51,7 +51,7 @@ function moveImages(kasuari, dx, dy) {
 }
 
 function addImage(kasuari, zoomLevel, ix, iy) {
-	var url = kasuari.config.imgdir + '/img-z' + zoomLevel + '.x' + ix + '.y' + iy + '.jpg';
+	var url = kasuari.config.imgdir + '/img-z' + zoomLevel + '.x' + ix + '.y' + iy + kasuari.config.ext;
 	var img = $('<img class="img" src="'+url+'"/>');
 	img.data('ix', ix);
 	img.data('iy', iy);
@@ -165,7 +165,8 @@ var Kasuari = function(s, config) {
 		x: 0,
 		y: 0,
 		zoomLevel: -1,
-		zoomStep: 2
+		zoomStep: 2,
+		ext: '.jpg'
 	}
 
 	// override configuration
