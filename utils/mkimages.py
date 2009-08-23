@@ -9,6 +9,7 @@ if len(sys.argv) < 3:
 
 input = sys.argv[1]
 target = sys.argv[2]
+ext = input.split('.')[-1]
 
 try:
 	os.mkdir(target)
@@ -47,7 +48,7 @@ while True:
 			box = (x, y, x+dim[0], y+dim[1])
 
 			region = im.crop(box)
-			fname = "img-z%d.x%d.y%d.jpg" % (zoom, j, i)
+			fname = "img-z%d.x%d.y%d.%s" % (zoom, j, i, ext)
 			region.save(os.path.join(target, fname))
 	print
 
