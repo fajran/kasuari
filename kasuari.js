@@ -258,6 +258,8 @@ Kasuari.prototype = {
 
 	mousemove: function(e) {
 		if (this.drag.enabled) {
+			this.drag.x0 = this.drag.x;
+			this.drag.y0 = this.drag.y;
 			this.drag.x = e.clientX;
 			this.drag.y = e.clientY;
 
@@ -272,6 +274,10 @@ Kasuari.prototype = {
 	},
 
 	mouseup: function(e) {
+		var dx = this.drag.x - this.drag.x0;
+		var dy = this.drag.y - this.drag.y0;
+		if (Math.abs(dx) >= 5) { this.drag.x += dx * 10; }
+		if (Math.abs(dy) >= 5) { this.drag.y += dy * 10; }
 		this.drag.enabled = false;
 	},
 
