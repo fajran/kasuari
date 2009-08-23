@@ -26,14 +26,20 @@ function setupEventHandler(kasuari) {
 		kasuari.mouseup(e);
 	});
 	kasuari.canvas.dblclick(function(e) {
-		kasuari.zoom(e.clientX, e.clientY, 1.5);
+		var pos = kasuari.canvas.offset();
+		var x = e.pageX - pos.left;
+		var y = e.pageY - pos.top;
+		kasuari.zoom(x, y, 1.5);
 	});
 	kasuari.canvas.mousewheel(function(e, d) {
+		var pos = kasuari.canvas.offset();
+		var x = e.pageX - pos.left;
+		var y = e.pageY - pos.top;
 		if (d > 0) {
-			kasuari.zoom(e.clientX, e.clientY, 1.5);
+			kasuari.zoom(x, y, 1.5);
 		}
 		else {
-			kasuari.zoom(e.clientX, e.clientY, 2/3.0);
+			kasuari.zoom(x, y, 2/3.0);
 		}
 		return false;
 	});
