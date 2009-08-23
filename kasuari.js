@@ -200,6 +200,8 @@ var Kasuari = function(canvas, config) {
 	this.canvas = canvas;
 	this.ctx = this.canvas.get(0).getContext('2d');
 
+	this.canvas.data('kasuari', this);
+
 	this.maxZoomLevel = getMaxZoomLevel(this.config);
 
 	if (this.config.zoomLevel == -1) { this.zoomLevel = this.maxZoomLevel; }
