@@ -138,8 +138,8 @@ function updateImageGeometry(kasuari) {
 		var img = kasuari.images[i];
 		img.x = img.ix * w;
 		img.y = img.iy * h;
-		img.w = w;
-		img.h = h;
+		img.w = Math.ceil(img.img.width * kasuari.scale);
+		img.h = Math.ceil(img.img.height * kasuari.scale);
 	}
 }
 
