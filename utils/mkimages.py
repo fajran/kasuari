@@ -4,7 +4,7 @@ import os
 from math import ceil
 
 if len(sys.argv) < 3:
-	print """Usage: %s <input.jpg> <output-directory>""" % sys.argv[0]
+	print """Usage: %s <input> <output-directory>""" % sys.argv[0]
 	sys.exit(1)
 
 input = sys.argv[1]
