@@ -87,10 +87,6 @@ function addImage(kasuari, zoomLevel, ix, iy) {
 	var url = kasuari.config.imgdir + '/img-z' + zoomLevel + '.x' + ix + '.y' + iy + kasuari.config.ext;
 	var img = new KasuariImage(url, kasuari);
 
-	var scale = kasuari.scale;
-	var w = Math.ceil(kasuari.tw * scale);
-	var h = Math.ceil(kasuari.th * scale);
-
 	img.id = zoomLevel+'-'+ix+'-'+iy;
 	img.ix = ix;
 	img.iy = iy;
