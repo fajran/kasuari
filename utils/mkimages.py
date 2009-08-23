@@ -43,9 +43,15 @@ while True:
 	for i in range(0, row):
 		print ".",
 		for j in range(0, col):
-			x = j * dim[0]
-			y = i * dim[0]
-			box = (x, y, x+dim[0], y+dim[1])
+			x0 = j * dim[0]
+			y0 = i * dim[0]
+			x1 = x0 + dim[0]
+			y1 = y0 + dim[0]
+			if x1 > size[0]:
+				x1 = size[0]
+			if y1 > size[1]:
+				y1 = size[1]
+			box = (x0, y0, x1, y1)
 
 			region = im.crop(box)
 			fname = "img-z%d.x%d.y%d.%s" % (zoom, j, i, ext)
