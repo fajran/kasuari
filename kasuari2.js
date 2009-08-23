@@ -158,6 +158,28 @@ function drawCanvas(kasuari) {
 	ctx.restore();
 }
 
+function smoothMove(kasuari) {
+	var dx = kasuari.drag.x + kasuari.drag.dx - kasuari.px;
+	var dy = kasuari.drag.y + kasuari.drag.dy - kasuari.py;
+	dx = Math.ceil(dx * 0.2);
+	dy = Math.ceil(dy * 0.2);
+	kasuari.px += dx;
+	kasuari.py += dy;
+
+	updateImages(kasuari);
+	drawCanvas(kasuari);
+
+	if ((dx != 0) || (dy != 0)) {
+		kasuari.timer = setTimeout(function() { 
+			smoothMove(kasuari) 
+		}, 20);
+	}
+	else {
+		clearTimeout(kasuari.timer);
+		kasuari.timer = undefined;
+	}
+}
+
 var Kasuari = function(canvas, config) {
 	// default configuration
 	this.config = {
@@ -210,6 +232,8 @@ var Kasuari = function(canvas, config) {
 	};
 
 	this.images = [];
+
+	this.timer = undefined;
 };
 
 Kasuari.prototype = {
@@ -236,10 +260,14 @@ Kasuari.prototype = {
 		if (this.drag.enabled) {
 			this.drag.x = e.clientX;
 			this.drag.y = e.clientY;
-			this.px = this.drag.x + this.drag.dx;
-			this.py = this.drag.y + this.drag.dy;
-			updateImages(this);
-			drawCanvas(this);
+
+			if (!this.timer) {
+				var self = this;
+				this.timer = setTimeout(function() {
+					smoothMove(self);
+				}, 20);
+			}
+
 		}
 	},
 
@@ -248,6 +276,8 @@ Kasuari.prototype = {
 	},
 
 	zoom: function(x, y, zoom) {
+		clearTimeout(this.timer);
+		this.timer = undefined;
 
 		var zoomLevel = this.zoomLevel;
 		var scale = this.scale * zoom;
