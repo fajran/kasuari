@@ -276,8 +276,8 @@ Kasuari.prototype = {
 	mouseup: function(e) {
 		var dx = this.drag.x - this.drag.x0;
 		var dy = this.drag.y - this.drag.y0;
-		if (Math.abs(dx) >= 5) { this.drag.x += dx * 10; }
-		if (Math.abs(dy) >= 5) { this.drag.y += dy * 10; }
+		if (Math.abs(dx) >= 5) { if (dx > 30) { dx = 30; }; this.drag.x += dx * 10; }
+		if (Math.abs(dy) >= 5) { if (dy > 30) { dy = 30; }; this.drag.y += dy * 10; }
 		this.drag.enabled = false;
 	},
 
