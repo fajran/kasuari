@@ -13,4 +13,4 @@ Demo
 ----
 
 * [Full Circle Magazine 26](http://labs.fajran.web.id/p/kasuari/full-circle-magazine-26/) - 69 MP
-
+* [NASA Blue Marble](http://labs.fajran.web.id/p/kasuari/bluemarble/) - 2km/pixel world image - 233 MP
