@@ -16,6 +16,16 @@ function getMaxZoomLevel(config) {
 }
 
 function setupEventHandler(kasuari) {
+	(function() {
+		var timer;
+		$(window).resize(function(e) {
+			clearTimeout(timer);
+			timer = setTimeout(function() {
+				kasuari.updateCanvasSize();
+				kasuari.updateCanvas();
+			}, 250);
+		});
+	})();
 	kasuari.canvas.mousedown(function(e) {
 		kasuari.mousedown(e);
 	});
@@ -125,7 +135,6 @@ function updateImages(kasuari) {
 			images.push(o);
 			delete add[o.id];
 		}
-		
 	};
 
 	kasuari.images = images;
@@ -219,11 +228,6 @@ var Kasuari = function(canvas, config) {
 	this.ih = this.config.h;
 	this.zoomStep = this.config.zoomStep;
 
-	this.cw = this.canvas.width();
-	this.ch = this.canvas.height();
-	canvas.get(0).width = this.cw;
-	canvas.get(0).height = this.ch;
-
 	this.step = Math.pow(this.zoomStep, this.zoomLevel);
 	this.scale = 1;
 	this.zoomInLimit = 1.25;
@@ -232,6 +236,8 @@ var Kasuari = function(canvas, config) {
 
 	this.px = Math.ceil(this.config.x / this.step);
 	this.py = Math.ceil(this.config.y / this.step);
+
+	this.cw = this.ch = -1;
 
 	this.drag = {
 		enabled: false,
@@ -247,6 +253,7 @@ var Kasuari = function(canvas, config) {
 Kasuari.prototype = {
 	start: function() {
 		setupEventHandler(this);
+		this.updateCanvasSize();
 		this.updateCanvas();
 	},
 
@@ -254,6 +261,23 @@ Kasuari.prototype = {
 		updateImages(this);
 		updateImageGeometry(this);
 		drawCanvas(this);
+	},
+
+	updateCanvasSize: function() {
+		var cw = this.cw;
+		var ch = this.ch;
+
+		this.cw = this.canvas.width();
+		this.ch = this.canvas.height();
+		this.canvas.get(0).width = this.cw;
+		this.canvas.get(0).height = this.ch;
+		
+		if (cw != -1) {
+			var dx = this.cw - cw;
+			var dy = this.ch - ch;
+			this.px += Math.ceil(dx/2);
+			this.py += Math.ceil(dy/2);
+		}
 	},
 
 	mousedown: function(e) {
