@@ -90,6 +90,7 @@ function addImage(kasuari, zoomLevel, ix, iy) {
 	img.id = zoomLevel+'-'+ix+'-'+iy;
 	img.ix = ix;
 	img.iy = iy;
+	img.level = zoomLevel;
 
 	kasuari.images.push(img);
 
