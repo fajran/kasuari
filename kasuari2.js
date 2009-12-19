@@ -100,7 +100,7 @@ Kasuari.prototype = {
     redraw: function() {
         var len = this.images.length;
 
-	    this.ctx.clearRect(0, 0, this.cw, this.ch);
+        this.ctx.clearRect(0, 0, this.cw, this.ch);
 
         this.ctx.save();
         this.ctx.translate(this.tx, this.ty);
@@ -125,18 +125,18 @@ Kasuari.prototype = {
 
         var size = 256 * this.scale * Math.pow(2, this.zoomLevel);
 
-	    var ix0 = Math.floor(x0/size)-1;
-	    var iy0 = Math.floor(y0/size)-1;
-	    var ix1 = Math.ceil(this.cw/size)+2 + ix0;
-	    var iy1 = Math.ceil(this.ch/size)+2 + iy0;
+        var ix0 = Math.floor(x0/size)-1;
+        var iy0 = Math.floor(y0/size)-1;
+        var ix1 = Math.ceil(this.cw/size)+2 + ix0;
+        var iy1 = Math.ceil(this.ch/size)+2 + iy0;
 
         var add = {};
         var del = [];
 
         var x, y;
-	    for (y=iy0; y<iy1; y++) {
-	    	for (x=ix0; x<ix1; x++) {
-	    		if ((x < 0) || (y < 0)) { continue; }
+        for (y=iy0; y<iy1; y++) {
+            for (x=ix0; x<ix1; x++) {
+                if ((x < 0) || (y < 0)) { continue; }
                 var x0 = Math.floor(x * size) + this.tx;
                 var y0 = Math.floor(y * size) + this.ty;
                 var x1 = x0 + size;
@@ -145,20 +145,20 @@ Kasuari.prototype = {
                 if ((x1 < 0) && (y1 < 0)) { continue; }
                 if ((x0 > this.cw) && (y0 > this.ch)) { continue; }
 
-	    		add[x+'-'+y+'-'+this.zoomLevel] = [ x, y ];
-	    	}
-	    }
+                add[x+'-'+y+'-'+this.zoomLevel] = [ x, y ];
+            }
+        }
 
-	    var images = [];
+        var images = [];
 
-	    var i, size = this.images.length;
-	    for (i=0; i<size; i++) {
-	    	var o = this.images[i];
-	    	if (add[o.id] != undefined) {
-	    		images.push(o);
-	    		delete add[o.id];
-	    	}
-	    };
+        var i, size = this.images.length;
+        for (i=0; i<size; i++) {
+            var o = this.images[i];
+            if (add[o.id] != undefined) {
+                images.push(o);
+                delete add[o.id];
+            }
+        };
 
         this.images = images;
 
@@ -185,7 +185,7 @@ Kasuari.prototype = {
         canvas.dblclick(function(e) {
             self._dblclick(e);
         });
-	    canvas.mousewheel(function(e, d) {
+        canvas.mousewheel(function(e, d) {
             self._mousewheel(e, d);
         });
     },
@@ -222,17 +222,17 @@ Kasuari.prototype = {
         this.zoom(x, y, this.clickZoomStep);
     },
     _mousewheel: function(e, d) {
-		var pos = $(this.canvas).offset();
-		var x = e.pageX - pos.left;
-		var y = e.pageY - pos.top;
-		if (d > 0) {
-			this.zoom(x, y, this.wheelZoomStep);
-		}
-		else {
-			this.zoom(x, y, 1/this.wheelZoomStep);
-		}
-		return false;
-	},
+        var pos = $(this.canvas).offset();
+        var x = e.pageX - pos.left;
+        var y = e.pageY - pos.top;
+        if (d > 0) {
+            this.zoom(x, y, this.wheelZoomStep);
+        }
+        else {
+            this.zoom(x, y, 1/this.wheelZoomStep);
+        }
+        return false;
+    },
 
     /* Navigation */
 
