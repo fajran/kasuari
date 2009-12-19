@@ -34,7 +34,12 @@ KasuariImage.prototype = {
         var y = Math.ceil(this.iy * dim);
         var w = Math.ceil(this.img.width * s);
         var h = Math.ceil(this.img.height * s);
-        ctx.drawImage(this.img, x, y, w, h);
+        try {
+            ctx.drawImage(this.img, x, y, w, h);
+        }
+        catch (err) {
+            // image is removed when this image is about to be rendered
+        }
     }
 };
 
