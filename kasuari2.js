@@ -133,17 +133,18 @@ Kasuari.prototype = {
         var add = {};
         var del = [];
 
-        var w = 256 * this.scale; //Math.pow(2, Math.log(this.scale) / Math.log(0.5)) * 256;
-        var h = Math.pow(2, Math.log(this.scale) / Math.log(0.5)) * 256;
-        h = w;
-
         var x, y;
 	    for (y=iy0; y<iy1; y++) {
 	    	for (x=ix0; x<ix1; x++) {
 	    		if ((x < 0) || (y < 0)) { continue; }
-	    		var ix = Math.floor(x * w);
-	    		var iy = Math.floor(y * h);
-	    		if ((ix > this.w) || (iy > this.h)) { continue; }
+                var x0 = Math.floor(x * size) + this.tx;
+                var y0 = Math.floor(y * size) + this.ty;
+                var x1 = x0 + size;
+                var y1 = y0 + size;
+
+                if ((x1 < 0) && (y1 < 0)) { continue; }
+                if ((x0 > this.cw) && (y0 > this.ch)) { continue; }
+
 	    		add[x+'-'+y+'-'+this.zoomLevel] = [ x, y ];
 	    	}
 	    }
