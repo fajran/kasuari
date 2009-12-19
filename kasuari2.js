@@ -104,11 +104,9 @@ Kasuari.prototype = {
     },
 
     updateZoomLevel: function() {
-        console.log('scale:', this.scale);
         var zoomLevel = Math.floor(Math.log(1/this.scale) / Math.log(2));
         if (zoomLevel < 0) { zoomLevel = 0; }
         this.zoomLevel = zoomLevel;
-        console.log('zoomLevel:', this.zoomLevel);
     },
 
     updateImages: function() {
@@ -123,9 +121,6 @@ Kasuari.prototype = {
 	    var iy0 = Math.floor(y0/size)-1;
 	    var ix1 = Math.ceil(this.cw/size)+2 + ix0;
 	    var iy1 = Math.ceil(this.ch/size)+2 + iy0;
-
-        console.log('size:', size);
-        console.log('updateImages:', 'boundary:', ix0, iy0, ix1, iy1);
 
         var add = {};
         var del = [];
@@ -203,7 +198,6 @@ Kasuari.prototype = {
             this.drag.dy = y - this.drag.y;
             this.drag.x = x;
             this.drag.y = y;
-            // console.log('move:', this.drag.dx, this.drag.dy);
 
             this.tx += this.drag.dx;
             this.ty += this.drag.dy;
@@ -223,11 +217,9 @@ Kasuari.prototype = {
 		var x = e.pageX - pos.left;
 		var y = e.pageY - pos.top;
 		if (d > 0) {
-            //console.log('wheel:', 'zoom:', x, y, 1.5);
 			this.zoom(x, y, 1.5);
 		}
 		else {
-            //console.log('wheel:', 'zoom:', x, y, 2/3);
 			this.zoom(x, y, 2/3.0);
 		}
 		return false;
