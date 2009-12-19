@@ -1,0 +1,71 @@
+<html><head>
+<link rel="stylesheet" type="text/css" href="style.css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery.mousewheel.js"></script>
+<script type="text/javascript" src="kasuari2.js"></script>
+<script type="text/javascript">
+
+var kasuari;
+$(document).ready(function() {
+	kasuari = new Kasuari($('#kc'), {
+		zoom: 0,
+		//imgdir: 'img2', w: 16965, h:8230
+		//imgdir: 'img', w: 2000, h: 1500
+		imgdir: 'fcm26', w:7016, h:9928, ext: '.png'
+	});
+	kasuari.start();
+});
+
+var anim = {
+    duration: 300,
+    start: { tx: 0, ty: 0, scale: 1.0 },
+    end: { tx: 100, ty: 100, scale: 2.0 },
+    delta: { tx: 0, ty: 0, scale: 0 },
+    tStart: new Date()
+};
+var counter = 0;
+function update() {
+    anim.tNow = new Date();
+    var tdelta = anim.tNow - anim.tStart;
+    var now = tdelta / anim.duration;
+
+    var tx = anim.start.tx + anim.delta.tx * now;
+    var ty = anim.start.ty + anim.delta.ty * now;
+    var scale = anim.start.scale + anim.delta.scale * now;
+    //console.log(tdelta, now, tx, ty, scale);
+
+    if (now >= 1.0) {
+        tx = anim.end.tx;
+        ty = anim.end.ty;
+        scale = anim.end.scale;
+    }
+
+    kasuari.tx = tx;
+    kasuari.ty = ty;
+    kasuari.scale = scale;
+    kasuari.redraw();
+
+    if (now < 1.0) {
+        setTimeout(update, 10);
+    }
+}
+
+function c() {
+    anim.start.scale = kasuari.scale;
+    anim.end.scale = kasuari.scale * 2;
+
+    anim.delta.tx = anim.end.tx - anim.start.tx;
+    anim.delta.ty = anim.end.ty - anim.start.ty;
+    anim.delta.scale = anim.end.scale - anim.start.scale;
+    console.log("start:", anim.start);
+    console.log("end:", anim.end);
+    console.log("delta:", anim.delta);
+    anim.tStart = new Date();
+    setTimeout(update, 0);
+}
+
+</script>
+</head><body>
+<button onclick="c()">click</button><br/>
+<canvas id="kc" class="kasuari"></canvas>
+</body></html>
