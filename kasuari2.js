@@ -70,6 +70,9 @@ var Kasuari = function(canvas, config) {
                     start: new Date(),
                     enabled: false};
 
+    this.clickZoomStep = 2.0;
+    this.wheelZoomStep = 2.0;
+
     this.images = [];
 };
 
@@ -215,17 +218,17 @@ Kasuari.prototype = {
         var pos = canvas.offset();
         var x = e.pageX - pos.left;
         var y = e.pageY - pos.top;
-        this.zoom(x, y, 2.0);
+        this.zoom(x, y, this.clickZoomStep);
     },
     _mousewheel: function(e, d) {
 		var pos = $(this.canvas).offset();
 		var x = e.pageX - pos.left;
 		var y = e.pageY - pos.top;
 		if (d > 0) {
-			this.zoom(x, y, 1.5);
+			this.zoom(x, y, this.wheelZoomStep);
 		}
 		else {
-			this.zoom(x, y, 2/3.0);
+			this.zoom(x, y, 1/this.wheelZoomStep);
 		}
 		return false;
 	},
