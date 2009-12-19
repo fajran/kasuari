@@ -30,10 +30,10 @@ KasuariImage.prototype = {
         if (!this.loaded) { return; }
         var s = scale * this.scale;
         var dim = 256 * s;
-        var x = this.ix * dim;
-        var y = this.iy * dim;
-        var w = this.img.width * s;
-        var h = this.img.height * s;
+        var x = Math.ceil(this.ix * dim);
+        var y = Math.ceil(this.iy * dim);
+        var w = Math.ceil(this.img.width * s);
+        var h = Math.ceil(this.img.height * s);
         ctx.drawImage(this.img, x, y, w, h);
         ctx.strokeRect(x, y, w, h);
     }
