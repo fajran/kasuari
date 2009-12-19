@@ -54,6 +54,7 @@ var Kasuari = function(canvas, config) {
     this.dir = config.imgdir;
     this.ext = config.ext;
     this.zoomLevel = config.zoom;
+    this.oldZoomLevel = this.zoomlevel;
     this.w = config.w;
     this.h = config.h;
 
@@ -98,12 +99,22 @@ Kasuari.prototype = {
     },
 
     redraw: function() {
-        var len = this.images.length;
 
         this.ctx.clearRect(0, 0, this.cw, this.ch);
 
         this.ctx.save();
         this.ctx.translate(this.tx, this.ty);
+
+        if (this.oldZoomLevel != this.zoomLevel) {
+            var len = this.oldImages.length;
+            for (var i=0; i<len; i++) {
+                var img = this.oldImages[i];
+                img.draw(this.ctx, this.scale);
+            }
+            this.oldZoomLevel = this.zoomLevel;
+        }
+
+        var len = this.images.length;
         for (var i=0; i<len; i++) {
             var img = this.images[i];
             img.draw(this.ctx, this.scale);
@@ -114,6 +125,7 @@ Kasuari.prototype = {
     updateZoomLevel: function() {
         var zoomLevel = Math.floor(Math.log(1/this.scale) / Math.log(2));
         if (zoomLevel < 0) { zoomLevel = 0; }
+        this.oldZoomLevel = this.zoomLevel;
         this.zoomLevel = zoomLevel;
     },
 
@@ -160,6 +172,12 @@ Kasuari.prototype = {
             }
         };
 
+        if (this.oldZoomLevel != this.zoomLevel) {
+            this.oldImages = this.images;
+        }
+        else {
+            this.oldImages = [];
+        }
         this.images = images;
 
         for (var k in add) {
