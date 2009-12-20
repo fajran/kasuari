@@ -131,14 +131,11 @@ Kasuari.prototype = {
                 self.images[iz] = {};
             }
             self.redrawBucket.add(img);
-            // self.images[iz][ix+','+iy] = img;
-            // self.redraw();
         }
         return img;
     },
 
     redraw: function() {
-
         this.ctx.clearRect(0, 0, this.cw, this.ch);
 
         this.ctx.save();
