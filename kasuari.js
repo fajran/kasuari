@@ -87,8 +87,7 @@ var Kasuari = function(canvas, config) {
 
     this.dir = config.imgdir;
     this.ext = config.ext;
-    this.zoomLevel = config.zoom;
-    this.oldZoomLevel = this.zoomlevel;
+    this.zoomLevel = config.zoomLevel;
     this.w = config.w;
     this.h = config.h;
 
