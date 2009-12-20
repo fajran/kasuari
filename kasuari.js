@@ -1,351 +1,352 @@
 (function() {
 
-function getMaxZoomLevel(config) {
-	var w = config.w;
-	var h = config.h;
-	var max = 0;
-	while (true) {
-		if ((w <= config.tw) && (h <= config.th)) {
-			break;
-		}
-		w = Math.ceil(w/2);
-		h = Math.ceil(h/2);
-		max++;
-	}
-	return max;
-}
+var KasuariImage = function(ix, iy, iz, url) {
+    this.ix = ix;
+    this.iy = iy;
+    this.iz = iz;
+    this.scale = Math.pow(2, iz);
+    this.loaded = false;
+    this.url = url;
+    this.img = new Image();
+    this.onload = undefined;
 
-function setupEventHandler(kasuari) {
-	(function() {
-		var timer;
-		$(window).resize(function(e) {
-			clearTimeout(timer);
-			timer = setTimeout(function() {
-				kasuari.updateCanvasSize();
-				kasuari.updateCanvas();
-			}, 250);
-		});
-	})();
-	kasuari.canvas.mousedown(function(e) {
-		kasuari.mousedown(e);
-	});
-	kasuari.canvas.mousemove(function(e) {
-		kasuari.mousemove(e);
-	});
-	kasuari.canvas.mouseup(function(e) {
-		kasuari.mouseup(e);
-	});
-	kasuari.canvas.dblclick(function(e) {
-		var pos = kasuari.canvas.offset();
-		var x = e.pageX - pos.left;
-		var y = e.pageY - pos.top;
-		kasuari.zoom(x, y, 1.5);
-	});
-	kasuari.canvas.mousewheel(function(e, d) {
-		var pos = kasuari.canvas.offset();
-		var x = e.pageX - pos.left;
-		var y = e.pageY - pos.top;
-		if (d > 0) {
-			kasuari.zoom(x, y, 1.5);
-		}
-		else {
-			kasuari.zoom(x, y, 2/3.0);
-		}
-		return false;
-	});
-}
+    this.id = ix + '-' + iy + '-' + iz;
 
-var KasuariImage = function(url, kasuari) {
-	this.kasuari = kasuari;
-	var self = this;
-	this.loaded = false;
-	this.url = url;
-	this.img = new Image();
-	this.img.onload = function() {
-		self.loaded = true;	
-		updateImageGeometry(self.kasuari);
-		drawCanvas(self.kasuari);
-	}
-}
-
-KasuariImage.prototype = {
-	init: function() {
-		this.img.src = this.url;
-	},
-
-	draw: function() {
-		if (!this.loaded) { return; }
-		var ctx = this.kasuari.ctx;
-		ctx.save();
-		ctx.translate(this.x, this.y);
-		ctx.drawImage(this.img, 0, 0, this.w, this.h);
-		ctx.restore();
-	},
+    var self = this;
+    this.img.onload = function() {
+        self.loaded = true;
+        if (self.onload != undefined) {
+            self.onload(self);
+        }
+    };
 };
 
-function addImage(kasuari, zoomLevel, ix, iy) {
-	var url = kasuari.config.imgdir + '/img-z' + zoomLevel + '.x' + ix + '.y' + iy + kasuari.config.ext;
-	var img = new KasuariImage(url, kasuari);
+KasuariImage.prototype = {
+    init: function() {
+        this.img.src = this.url;
+    },
 
-	img.id = zoomLevel+'-'+ix+'-'+iy;
-	img.ix = ix;
-	img.iy = iy;
-	img.level = zoomLevel;
+    draw: function(ctx, scale) {
+        if (!this.loaded) { return; }
+        var s = scale * this.scale;
+        var dim = 256 * s;
+        var x = Math.ceil(this.ix * dim);
+        var y = Math.ceil(this.iy * dim);
+        var w = Math.ceil(this.img.width * s);
+        var h = Math.ceil(this.img.height * s);
+        try {
+            ctx.drawImage(this.img, x, y, w, h);
+        }
+        catch (err) {
+            // image is removed when this image is about to be rendered
+        }
+    }
+};
 
-	kasuari.images.push(img);
+var RedrawBucket = function(kasuari) {
+    var self = this;
+    this.timer = setInterval(function() { self.redraw(); }, 250);
+    this.items = [];
+    this.kasuari = kasuari;
+};
 
-	img.init();
-}
+RedrawBucket.prototype = {
+    add: function(img) {
+        this.items.push(img);
+    },
 
-function updateImages(kasuari) {
-	var x0 = -kasuari.px;
-	var y0 = -kasuari.py;
-	var x1 = x0 + kasuari.cw;
-	var y1 = y0 + kasuari.ch;
+    redraw: function() {
+        var items = this.items.slice(0);
+        this.items = []; // racing condition possibility
 
-	var ix0 = Math.floor(x0/(kasuari.tw*kasuari.scale))-1;
-	var iy0 = Math.floor(y0/(kasuari.th*kasuari.scale))-1;
-	var ix1 = Math.ceil(kasuari.cw/(kasuari.tw*kasuari.scale))+2 + ix0;
-	var iy1 = Math.ceil(kasuari.ch/(kasuari.th*kasuari.scale))+2 + iy0;
+        var level = this.kasuari.zoomLevel;
+        var len = items.length;
+        for (var i=0; i<len; i++) {
+            var img = items[i];
+            if (img.iz == level) {
+                var key = img.ix+','+img.iy;
+                this.kasuari.images[level][key] = img;
+            }
+        }
 
-	var add = {};
-	var del = [];
-
-	var x, y;
-	for (y=iy0; y<iy1; y++) {
-		for (x=ix0; x<ix1; x++) {
-			if ((x < 0) || (y < 0)) { continue; }
-			var ix = Math.floor(x * kasuari.step * kasuari.tw);
-			var iy = Math.floor(y * kasuari.step * kasuari.th);
-			if ((ix > kasuari.iw) || (iy > kasuari.ih)) { continue; }
-
-			add[kasuari.zoomLevel+'-'+x+'-'+y] = [ x, y ];
-		}
-	}
-
-	var images = [];
-
-	var i, size = kasuari.images.length;
-	for (i=0; i<size; i++) {
-		var o = kasuari.images[i];
-		if (add[o.id] != undefined) {
-			images.push(o);
-			delete add[o.id];
-		}
-	};
-
-	kasuari.images = images;
-
-	for (var k in add) {
-		var d = add[k];
-		addImage(kasuari, kasuari.zoomLevel, d[0], d[1]);
-	}
-}
-
-function updateImageGeometry(kasuari) {
-	var w = Math.ceil(kasuari.tw * kasuari.scale);
-	var h = Math.ceil(kasuari.th * kasuari.scale);
-	var i, size = kasuari.images.length;
-	for (i=0; i<size; i++) {
-		var img = kasuari.images[i];
-		img.x = img.ix * w;
-		img.y = img.iy * h;
-		img.w = Math.ceil(img.img.width * kasuari.scale);
-		img.h = Math.ceil(img.img.height * kasuari.scale);
-	}
-}
-
-function drawCanvas(kasuari) {
-	var ctx = kasuari.ctx;
-	ctx.clearRect(0, 0, kasuari.cw, kasuari.ch);
-	ctx.save();
-	ctx.translate(kasuari.px, kasuari.py);
-
-	var i, size = kasuari.images.length;
-	for (i=0; i<size; i++) {
-		var img = kasuari.images[i];
-		img.draw();
-	}
-
-	ctx.restore();
-}
-
-function smoothMove(kasuari) {
-	var dx = kasuari.drag.x + kasuari.drag.dx - kasuari.px;
-	var dy = kasuari.drag.y + kasuari.drag.dy - kasuari.py;
-	dx = Math.ceil(dx * 0.2);
-	dy = Math.ceil(dy * 0.2);
-	kasuari.px += dx;
-	kasuari.py += dy;
-
-	updateImages(kasuari);
-	drawCanvas(kasuari);
-
-	if ((dx != 0) || (dy != 0)) {
-		kasuari.timer = setTimeout(function() { 
-			smoothMove(kasuari) 
-		}, 20);
-	}
-	else {
-		clearTimeout(kasuari.timer);
-		kasuari.timer = undefined;
-	}
-}
+        this.kasuari.redraw();
+    },
+};
 
 var Kasuari = function(canvas, config) {
-	// default configuration
-	this.config = {
-		tw: 256,
-		th: 256,
-		x: 0,
-		y: 0,
-		zoomLevel: -1,
-		zoomStep: 2,
-		ext: '.jpg'
-	}
+    this.canvas = canvas.get(0);
+    this.cw = canvas.width();
+    this.ch = canvas.height();
+    this.canvas.width = this.cw;
+    this.canvas.height = this.ch;
+    this.ctx = this.canvas.getContext('2d');
 
-	// override configuration
-	for (var k in config) {
-		this.config[k] = config[k];
-	}
+    this.dir = config.imgdir;
+    this.ext = config.ext;
+    this.zoomLevel = config.zoom;
+    this.oldZoomLevel = this.zoomlevel;
+    this.w = config.w;
+    this.h = config.h;
 
-	this.canvas = canvas;
-	this.ctx = this.canvas.get(0).getContext('2d');
+    this.scale = Math.pow(0.5, this.zoomLevel);
+    this.tx = 0;
+    this.ty = 0;
 
-	this.canvas.data('kasuari', this);
+    this.drag = {x: 0, y: 0, dx: 0, dy: 0, enabled: false};
+    this.zooming = {x: 0, y: 0, scale: 0, 
+                    dx: 0, dy: 0, dscale: 0, 
+                    tx: 0, ty: 0, tscale: 0, 
+                    duration: 250,
+                    interval: 20,
+                    start: new Date(),
+                    enabled: false};
 
-	this.maxZoomLevel = getMaxZoomLevel(this.config);
+    this.clickZoomStep = 2.0;
+    this.wheelZoomStep = 2.0;
 
-	if (this.config.zoomLevel == -1) { this.zoomLevel = this.maxZoomLevel; }
-	else { this.zoomLevel = this.config.zoomLevel; }
+    this.images = [];
 
-	this.tw = this.config.tw;
-	this.th = this.config.th;
-	this.iw = this.config.w;
-	this.ih = this.config.h;
-	this.zoomStep = this.config.zoomStep;
-
-	this.step = Math.pow(this.zoomStep, this.zoomLevel);
-	this.scale = 1;
-	this.zoomInLimit = 1.25;
-	this.zoomOutLimit = 1.0/this.zoomStep;
-	this.timer = undefined;
-
-	this.px = Math.ceil(this.config.x / this.step);
-	this.py = Math.ceil(this.config.y / this.step);
-
-	this.cw = this.ch = -1;
-
-	this.drag = {
-		enabled: false,
-		x: 0,
-		y: 0
-	};
-
-	this.images = [];
-
-	this.timer = undefined;
+    this.redrawBucket = new RedrawBucket(this);
 };
 
 Kasuari.prototype = {
-	start: function() {
-		setupEventHandler(this);
-		this.updateCanvasSize();
-		this.updateCanvas();
-	},
+    getURL: function(ix, iy, iz) {
+        return this.dir + '/img-z' + iz + '.x' + ix + '.y' + iy + this.ext;
+    },
 
-	updateCanvas: function() {
-		updateImages(this);
-		updateImageGeometry(this);
-		drawCanvas(this);
-	},
+    start: function() {
+        this.initEventHandlers();
+        this.updateImages();
+    },
 
-	updateCanvasSize: function() {
-		var cw = this.cw;
-		var ch = this.ch;
+    addImage: function(ix, iy, iz) {
+        var url = this.getURL(ix, iy, iz);
+        var img = new KasuariImage(ix, iy, iz, url);
+        var self = this;
+        img.onload = function(img) {
+            if (self.images[iz] == undefined) {
+                self.images[iz] = {};
+            }
+            self.redrawBucket.add(img);
+            // self.images[iz][ix+','+iy] = img;
+            // self.redraw();
+        }
+        return img;
+    },
 
-		this.cw = this.canvas.width();
-		this.ch = this.canvas.height();
-		this.canvas.get(0).width = this.cw;
-		this.canvas.get(0).height = this.ch;
-		
-		if (cw != -1) {
-			var dx = this.cw - cw;
-			var dy = this.ch - ch;
-			this.px += Math.ceil(dx/2);
-			this.py += Math.ceil(dy/2);
-		}
-	},
+    redraw: function() {
 
-	mousedown: function(e) {
-		this.drag.x = e.clientX;
-		this.drag.y = e.clientY;
-		this.drag.dx = this.px - this.drag.x;
-		this.drag.dy = this.py - this.drag.y;
-		this.drag.enabled = true;
-	},
+        this.ctx.clearRect(0, 0, this.cw, this.ch);
 
-	mousemove: function(e) {
-		if (this.drag.enabled) {
-			this.drag.x0 = this.drag.x;
-			this.drag.y0 = this.drag.y;
-			this.drag.x = e.clientX;
-			this.drag.y = e.clientY;
+        this.ctx.save();
+        this.ctx.translate(this.tx, this.ty);
 
-			if (!this.timer) {
-				var self = this;
-				this.timer = setTimeout(function() {
-					smoothMove(self);
-				}, 20);
-			}
+        var len = this.images.length;
+        for (var i=len-1; i>=0; i--) {
+            var images = this.images[i];
+            if (images != undefined) {
+                for (var key in images) {
+                    images[key].draw(this.ctx, this.scale);
+                }
+            }
+        }
 
-		}
-	},
+        this.ctx.restore();
+    },
 
-	mouseup: function(e) {
-		var dx = this.drag.x - this.drag.x0;
-		var dy = this.drag.y - this.drag.y0;
-		if (Math.abs(dx) >= 5) { if (dx > 30) { dx = 30; }; this.drag.x += dx * 10; }
-		if (Math.abs(dy) >= 5) { if (dy > 30) { dy = 30; }; this.drag.y += dy * 10; }
-		this.drag.enabled = false;
-	},
+    updateZoomLevel: function() {
+        var zoomLevel = Math.floor(Math.log(1/this.scale) / Math.log(2));
+        if (zoomLevel < 0) { zoomLevel = 0; }
+        this.zoomLevel = zoomLevel;
+    },
 
-	zoom: function(x, y, zoom) {
-		clearTimeout(this.timer);
-		this.timer = undefined;
+    getVisibleImages: function(level) {
+        var tx = this.tx / this.scale;
+        var ty = this.ty / this.scale;
+        var cw = this.cw / this.scale;
+        var ch = this.ch / this.scale;
+        var size = 256 * Math.pow(2, level);
 
-		var zoomLevel = this.zoomLevel;
-		var scale = this.scale * zoom;
-		if ((zoomLevel > 0) && (scale > this.zoomInLimit)) {
-			while (scale > this.zoomInLimit) {
-				zoomLevel--;
-				scale = scale / this.zoomStep;
-			}
-			if (zoomLevel < 0) {
-				zoomLevel = 0;
-			}
-		}
-		else if ((zoomLevel < this.maxZoomLevel) && (scale < this.zoomOutLimit)) {
-			while (scale < this.zoomOutLimit) {
-				zoomLevel++;
-				scale = scale * this.zoomStep;
-			}
-			if (zoomLevel > this.maxZoomLevel) {
-				zoomLevel = this.maxZoomLevel;
-			}
-		}
+        var x0 = Math.floor(-tx / size) - 1;
+        var y0 = Math.floor(-ty / size) - 1;
+        var x1 = Math.ceil((-tx + cw) / size) + 1;
+        var y1 = Math.ceil((-ty + ch) / size) + 1;
 
-		this.scale = scale;
+        var items = {};
 
-		if (zoomLevel != this.zoomLevel) {
-			this.zoomLevel = zoomLevel;
-			this.step = Math.pow(this.zoomStep, this.zoomLevel);
-		}
+        var x, y;
+        for (x=x0; x<=x1; x++) {
+            for (y=y0; y<=y1; y++) {
+                var px = x * size;
+                var py = y * size;
 
-		this.px = Math.floor(x - (x - this.px) * zoom);
-		this.py = Math.floor(y - (y - this.py) * zoom);
-		this.updateCanvas();
-	}
+                if ((x < 0) || (y < 0)) { continue; }
+                if ((px > this.w) || (py > this.h)) { continue; }
+                
+                items[x+','+y] = [x, y];
+            }
+        }
+
+        return items;
+    },
+
+    updateVisibleImages: function(level, add) {
+        var items = this.getVisibleImages(level);
+
+        if (this.images[level] == undefined) {
+            this.images[level] = {};
+        }
+
+        // delete unused image
+        for (var key in this.images[level]) {
+            if (!(key in items)) {
+                delete this.images[level][key];
+            }
+        }
+
+        // add new image
+        if ((add == undefined) || add) {
+            var images = this.images[level];
+            for (var key in items) {
+                var data = items[key];
+                if (!(data in images)) {
+                    this.addImage(data[0], data[1], level).init();
+                }
+            }
+        }
+    },
+
+    updateImages: function() {
+        var len = this.images.length;
+        for (var i=0; i<len; i++) {
+            if (i != this.zoomLevel) {
+                this.updateVisibleImages(i, false);
+            }
+        }
+        this.updateVisibleImages(this.zoomLevel);
+    },
+
+    /* Event handlers */
+
+    initEventHandlers: function() {
+        var canvas = $(this.canvas);
+        var self = this;
+        canvas.mousedown(function(e) {
+            self._mousedown(e);
+        });
+        canvas.mousemove(function(e) {
+            self._mousemove(e);
+        });
+        canvas.mouseup(function(e) {
+            self._mouseup(e);
+        });
+        canvas.dblclick(function(e) {
+            self._dblclick(e);
+        });
+        canvas.mousewheel(function(e, d) {
+            self._mousewheel(e, d);
+        });
+    },
+    _mousedown: function(e) {
+        this.drag.x = e.clientX;
+        this.drag.y = e.clientY;
+        this.drag.dx = 0;
+        this.drag.dy = 0;
+        this.drag.enabled = true;
+    },
+    _mouseup: function(e) {
+        this.drag.enabled = false;
+    },
+    _mousemove: function(e) {
+        if (this.drag.enabled) {
+            var x = e.clientX;
+            var y = e.clientY;
+            this.drag.dx = x - this.drag.x;
+            this.drag.dy = y - this.drag.y;
+            this.drag.x = x;
+            this.drag.y = y;
+
+            this.tx += this.drag.dx;
+            this.ty += this.drag.dy;
+            // this.updateVisibleImages(this.zoomLevel);
+            this.updateImages();
+            this.redraw();
+        };
+    },
+    _dblclick: function(e) {
+        var canvas = $(this.canvas);
+        var pos = canvas.offset();
+        var x = e.pageX - pos.left;
+        var y = e.pageY - pos.top;
+        this.zoom(x, y, this.clickZoomStep);
+    },
+    _mousewheel: function(e, d) {
+        var pos = $(this.canvas).offset();
+        var x = e.pageX - pos.left;
+        var y = e.pageY - pos.top;
+        if (d > 0) {
+            this.zoom(x, y, this.wheelZoomStep);
+        }
+        else {
+            this.zoom(x, y, 1/this.wheelZoomStep);
+        }
+        return false;
+    },
+
+    /* Navigation */
+
+    zoom: function(x, y, scale) {
+        if (this.zooming.enabled) { return; }
+        this.zooming.enabled = true;
+
+        this.zooming.x = this.tx;
+        this.zooming.y = this.ty;
+        this.zooming.scale = this.scale;
+
+        this.zooming.tx = Math.floor(x - (x - this.tx) * scale);
+        this.zooming.ty = Math.floor(y - (y - this.ty) * scale);
+        this.zooming.tscale = this.scale * scale;
+
+        this.zooming.dx = this.zooming.tx - this.zooming.x;
+        this.zooming.dy = this.zooming.ty - this.zooming.y;
+        this.zooming.dscale = this.zooming.tscale - this.zooming.scale;
+
+        this.zooming.start = new Date();
+        var self = this;
+        setTimeout(function() { self._zoomStep(); },
+                    this.zooming.interval);
+    },
+
+    _zoomStep: function() {
+        var tnow = new Date();
+        var tdelta = tnow - this.zooming.start;
+        var now = tdelta / this.zooming.duration;
+
+        this.tx = this.zooming.x + this.zooming.dx * now;
+        this.ty = this.zooming.y + this.zooming.dy * now;
+        this.scale = this.zooming.scale + this.zooming.dscale * now;
+
+        var a = this.tx;
+        if (now >= 1.0) {
+            this.tx = this.zooming.tx;
+            this.ty = this.zooming.ty;
+            this.scale = this.zooming.tscale;
+        }
+        var b = this.tx;
+
+        if (now < 1.0) {
+            this.redraw();
+            var self = this;
+            setTimeout(function() { self._zoomStep(); }, 
+                       this.zooming.interval);
+        }
+        else {
+            this.zooming.enabled = false;
+            this.updateZoomLevel();
+            this.updateImages();
+            this.redraw();
+        }
+    },
 };
 
 this.Kasuari = Kasuari;
