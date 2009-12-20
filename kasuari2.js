@@ -177,9 +177,13 @@ Kasuari.prototype = {
         var x, y;
         for (x=x0; x<=x1; x++) {
             for (y=y0; y<=y1; y++) {
-                if ((x >= 0) && (y >= 0)) {
-                    items[x+','+y] = [x, y];
-                }
+                var px = x * size;
+                var py = y * size;
+
+                if ((x < 0) || (y < 0)) { continue; }
+                if ((px > this.w) || (py > this.h)) { continue; }
+                
+                items[x+','+y] = [x, y];
             }
         }
 
