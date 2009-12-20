@@ -92,7 +92,10 @@ Kasuari.prototype = {
         var img = new KasuariImage(ix, iy, iz, url);
         var self = this;
         img.onload = function(img) {
-            self.images.push(img);
+            if (self.images[iz] == undefined) {
+                self.images[iz] = {};
+            }
+            self.images[iz][ix+','+iy] = img;
             self.redraw();
         }
         return img;
@@ -105,85 +108,85 @@ Kasuari.prototype = {
         this.ctx.save();
         this.ctx.translate(this.tx, this.ty);
 
-        if (this.oldZoomLevel != this.zoomLevel) {
-            var len = this.oldImages.length;
-            for (var i=0; i<len; i++) {
-                var img = this.oldImages[i];
-                img.draw(this.ctx, this.scale);
+        var len = this.images.length;
+        for (var i=len-1; i>=0; i--) {
+            var images = this.images[i];
+            if ((images != undefined) && (i >= this.zoomLevel)) {
+                for (var key in images) {
+                    images[key].draw(this.ctx, this.scale);
+                }
             }
-            this.oldZoomLevel = this.zoomLevel;
         }
 
-        var len = this.images.length;
-        for (var i=0; i<len; i++) {
-            var img = this.images[i];
-            img.draw(this.ctx, this.scale);
-        }
         this.ctx.restore();
     },
 
     updateZoomLevel: function() {
         var zoomLevel = Math.floor(Math.log(1/this.scale) / Math.log(2));
         if (zoomLevel < 0) { zoomLevel = 0; }
-        this.oldZoomLevel = this.zoomLevel;
         this.zoomLevel = zoomLevel;
     },
 
-    updateImages: function() {
-        var x0 = -this.tx;
-        var y0 = -this.ty;
-        var x1 = x0 + this.cw;
-        var y1 = y0 + this.ch;
+    getVisibleImages: function(level) {
+        var tx = this.tx / this.scale;
+        var ty = this.ty / this.scale;
+        var cw = this.cw / this.scale;
+        var ch = this.ch / this.scale;
+        var size = 256 * Math.pow(2, level);
 
-        var size = 256 * this.scale * Math.pow(2, this.zoomLevel);
+        var x0 = Math.floor(-tx / size) - 1;
+        var y0 = Math.floor(-ty / size) - 1;
+        var x1 = Math.ceil((-tx + cw) / size) + 1;
+        var y1 = Math.ceil((-ty + ch) / size) + 1;
 
-        var ix0 = Math.floor(x0/size)-1;
-        var iy0 = Math.floor(y0/size)-1;
-        var ix1 = Math.ceil(this.cw/size)+2 + ix0;
-        var iy1 = Math.ceil(this.ch/size)+2 + iy0;
-
-        var add = {};
-        var del = [];
+        var items = {};
 
         var x, y;
-        for (y=iy0; y<iy1; y++) {
-            for (x=ix0; x<ix1; x++) {
-                if ((x < 0) || (y < 0)) { continue; }
-                var x0 = Math.floor(x * size) + this.tx;
-                var y0 = Math.floor(y * size) + this.ty;
-                var x1 = x0 + size;
-                var y1 = y0 + size;
-
-                if ((x1 < 0) && (y1 < 0)) { continue; }
-                if ((x0 > this.cw) && (y0 > this.ch)) { continue; }
-
-                add[x+'-'+y+'-'+this.zoomLevel] = [ x, y ];
+        for (x=x0; x<=x1; x++) {
+            for (y=y0; y<=y1; y++) {
+                if ((x >= 0) && (y >= 0)) {
+                    items[x+','+y] = [x, y];
+                }
             }
         }
 
-        var images = [];
+        return items;
+    },
 
-        var i, size = this.images.length;
-        for (i=0; i<size; i++) {
-            var o = this.images[i];
-            if (add[o.id] != undefined) {
-                images.push(o);
-                delete add[o.id];
+    updateVisibleImages: function(level, add) {
+        var items = this.getVisibleImages(level);
+
+        if (this.images[level] == undefined) {
+            this.images[level] = {};
+        }
+
+        // delete unused image
+        for (var key in this.images[level]) {
+            if (!(key in items)) {
+                delete this.images[level][key];
             }
-        };
+        }
 
-        if (this.oldZoomLevel != this.zoomLevel) {
-            this.oldImages = this.images;
+        // add new image
+        if ((add == undefined) || add) {
+            var images = this.images[level];
+            for (var key in items) {
+                var data = items[key];
+                if (!(data in images)) {
+                    this.addImage(data[0], data[1], level).init();
+                }
+            }
         }
-        else {
-            this.oldImages = [];
-        }
-        this.images = images;
+    },
 
-        for (var k in add) {
-            var d = add[k];
-            this.addImage(d[0], d[1], this.zoomLevel).init();
+    updateImages: function() {
+        var len = this.images.length;
+        for (var i=0; i<len; i++) {
+            if (i != this.zoomLevel) {
+                this.updateVisibleImages(i, false);
+            }
         }
+        this.updateVisibleImages(this.zoomLevel);
     },
 
     /* Event handlers */
@@ -293,9 +296,8 @@ Kasuari.prototype = {
         }
         var b = this.tx;
 
-        this.redraw();
-
         if (now < 1.0) {
+            this.redraw();
             var self = this;
             setTimeout(function() { self._zoomStep(); }, 
                        this.zooming.interval);
