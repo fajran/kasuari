@@ -43,6 +43,36 @@ KasuariImage.prototype = {
     }
 };
 
+var RedrawBucket = function(kasuari) {
+    var self = this;
+    this.timer = setInterval(function() { self.redraw(); }, 250);
+    this.items = [];
+    this.kasuari = kasuari;
+};
+
+RedrawBucket.prototype = {
+    add: function(img) {
+        this.items.push(img);
+    },
+
+    redraw: function() {
+        var items = this.items.slice(0);
+        this.items = []; // racing condition possibility
+
+        var level = this.kasuari.zoomLevel;
+        var len = items.length;
+        for (var i=0; i<len; i++) {
+            var img = items[i];
+            if (img.iz == level) {
+                var key = img.ix+','+img.iy;
+                this.kasuari.images[level][key] = img;
+            }
+        }
+
+        this.kasuari.redraw();
+    },
+};
+
 var Kasuari = function(canvas, config) {
     this.canvas = canvas.get(0);
     this.cw = canvas.width();
@@ -75,6 +105,8 @@ var Kasuari = function(canvas, config) {
     this.wheelZoomStep = 2.0;
 
     this.images = [];
+
+    this.redrawBucket = new RedrawBucket(this);
 };
 
 Kasuari.prototype = {
@@ -95,8 +127,9 @@ Kasuari.prototype = {
             if (self.images[iz] == undefined) {
                 self.images[iz] = {};
             }
-            self.images[iz][ix+','+iy] = img;
-            self.redraw();
+            self.redrawBucket.add(img);
+            // self.images[iz][ix+','+iy] = img;
+            // self.redraw();
         }
         return img;
     },
