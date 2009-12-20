@@ -144,7 +144,7 @@ Kasuari.prototype = {
         var len = this.images.length;
         for (var i=len-1; i>=0; i--) {
             var images = this.images[i];
-            if ((images != undefined) && (i >= this.zoomLevel)) {
+            if (images != undefined) {
                 for (var key in images) {
                     images[key].draw(this.ctx, this.scale);
                 }
