@@ -264,6 +264,7 @@ Kasuari.prototype = {
 
             this.tx += this.drag.dx;
             this.ty += this.drag.dy;
+            // this.updateVisibleImages(this.zoomLevel);
             this.updateImages();
             this.redraw();
         };
