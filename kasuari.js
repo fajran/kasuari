@@ -61,15 +61,19 @@ RedrawBucket.prototype = {
 
         var level = this.kasuari.zoomLevel;
         var len = items.length;
+        var added = false;
         for (var i=0; i<len; i++) {
             var img = items[i];
             if (img.iz == level) {
                 var key = img.ix+','+img.iy;
                 this.kasuari.images[level][key] = img;
+                added = true;
             }
         }
 
-        this.kasuari.redraw();
+        if (added) {
+            this.kasuari.redraw();
+        }
     },
 };
 
