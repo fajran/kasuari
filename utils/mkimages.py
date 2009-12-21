@@ -1,69 +1,139 @@
 from PIL import Image
-import sys
 import os
-from math import ceil
+import sys
 
-if len(sys.argv) < 3:
-	print """Usage: %s <input> <output-directory>""" % sys.argv[0]
-	sys.exit(1)
+class ImageConstructor:
+    #format = "%(z)d.%(x)d.%(y)d.jpg"
+    format = "img-z%(z)d.x%(x)d.y%(y)d.jpg"
 
-input = sys.argv[1]
-target = sys.argv[2]
-ext = input.split('.')[-1]
+    def __init__(self, src, target):
+        self.src = src
+        self.target = target
 
-try:
-	os.mkdir(target)
-except OSError:
-	pass
+        self.size = 256
+        self.size2 = 2 * self.size
 
-dim = (256, 256)
+    def start(self):
+        self._split()
 
-print "Reading image..",
-im = Image.open(input)
-print "done."
+        level = 0
+        while True:
+            total = self._merge(level)
+            if total == 1:
+                break
+            level += 1
 
-size = im.size
-print "Image size:", repr(size)
+        print "done."
+        
 
-def smaller(size, max):
-	w, h = size
-	mw, mh = max
-	return w < mw and h < mh
+    def _split(self):
+        size = self.size
+        target = self.target
 
-print "Creating images.."
+        im = Image.open(self.src)
+        w, h = im.size
+        
+        print "Image size:", w, h
+        print "Initial image splitting.."
+        
+        y = 0
+        py = 0
+        while True:
+            if y > h:
+                break
+        
+            x = 0
+            px = 0
+            while True:
+                if x > w:
+                    break
+        
+                tx = x + size
+                ty = y + size
+        
+                if tx > w:
+                    tx = w
+                if ty > h:
+                    ty = h
+        
+                fname = os.path.join(target, self.format % 
+                                             {'z': 0, 'x': px, 'y': py})
+                segment = im.crop((x, y, tx, ty))
+                segment.save(fname)
+    
+                print "-", fname
+        
+                x += size
+                px += 1
+        
+            y += size
+            py += 1
 
-zoom = 0
-while True:
-	print "- Zoom level %d, size: %s" % (zoom, repr(size))
-	print " ",
+    def _merge(self, level):
+        print "Merging images on level %d.." % level
 
-	col = int(ceil(float(size[0]) / dim[0]))
-	row = int(ceil(float(size[1]) / dim[1]))
+        size = self.size
+        size2 = self.size2
+        target = self.target
+    
+        total = 0
+        
+        y = 0
+        py = 0
+        while True:
+            x = 0
+            px = 0
+        
+            first = True
+            while True:
+                xlist = [x, x+1]
+                ylist = [y, y+1]
+        
+                im = Image.new("RGB", (size2, size2))
+        
+                cnt = 0
+                for ix in [0,1]:
+                    for iy in [0,1]:
+                        sx, sy = xlist[ix], ylist[iy]
+                        fname = os.path.join(target, self.format %
+                                                     {'z': level, 
+                                                      'x': sx, 'y': sy})
+                        if os.path.isfile(fname):
+                            ims = Image.open(fname)
+                            w, h = ims.size
+                            im.paste(ims, (ix * size, iy * size, 
+                                           ix * size + w, iy * size + h))
+                            cnt += 1
+        
+                if cnt > 0:
+                    fname = os.path.join(target, self.format % 
+                                                 {'z': level + 1,
+                                                  'x': px, 'y': py})
+                    resized = im.resize((size, size))
+                    resized.save(fname)
+                    total += 1
+    
+                    print "-", fname
+        
+                if cnt == 0:
+                    break
+        
+                px += 1
+                x += 2
+                first = False
+        
+            if first and cnt == 0:
+                break
+        
+            py += 1
+            y += 2
+    
+        return total
+    
+    
+if __name__ == '__main__':
+    src = sys.argv[1]
+    target = sys.argv[2]
+    ic = ImageConstructor(src, target)    
+    ic.start()
 
-	for i in range(0, row):
-		print ".",
-		for j in range(0, col):
-			x0 = j * dim[0]
-			y0 = i * dim[0]
-			x1 = x0 + dim[0]
-			y1 = y0 + dim[0]
-			if x1 > size[0]:
-				x1 = size[0]
-			if y1 > size[1]:
-				y1 = size[1]
-			box = (x0, y0, x1, y1)
-
-			region = im.crop(box)
-			fname = "img-z%d.x%d.y%d.%s" % (zoom, j, i, ext)
-			region.save(os.path.join(target, fname))
-	print
-
-	if smaller(size, dim):
-		break
-	
-	im = im.resize((size[0]/2, size[1]/2))
-	size = im.size
-	zoom += 1
-
-print "done."
-	
