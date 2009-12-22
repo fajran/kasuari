@@ -329,13 +329,11 @@ int main(int argc, char** argv)
             ix[j+1] = data->last_ix;
             iy[i+1] = data->last_iy;
 
-            if (data->last_ox == data->cw) {
-                ox[j+1]++;
-                ix[j+1] = 0;
+            if (data->last_ox == 0) {
+                ix[j+1]++;
             }
-            if (data->last_oy == data->ch) {
-                oy[i+1]++;
-                iy[i+1] = 0;
+            if (data->last_oy == 0) {
+                iy[i+1]++;
             }
         }
     }
