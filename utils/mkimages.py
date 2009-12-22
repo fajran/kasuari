@@ -59,6 +59,10 @@ class ImageConstructor:
                 fname = os.path.join(target, self.format % 
                                              {'z': 0, 'x': px, 'y': py})
                 segment = im.crop((x, y, tx, ty))
+                if segment.size[0] < size or segment.size[1] < size:
+                    p = segment
+                    segment = Image.new('RGB', (size, size))
+                    segment.paste(p, (0, 0, p.size[0], p.size[1]))
                 segment.save(fname)
     
                 print "-", fname
