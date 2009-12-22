@@ -114,7 +114,8 @@ var Kasuari = function(canvas, config) {
 
 Kasuari.prototype = {
     getURL: function(ix, iy, iz) {
-        return this.dir + '/img-z' + iz + '.x' + ix + '.y' + iy + this.ext;
+        //return this.dir + '/img-z' + iz + '.x' + ix + '.y' + iy + this.ext;
+        return this.dir + '/' + iz + '.' + ix + '.' + iy + this.ext;
     },
 
     start: function() {
