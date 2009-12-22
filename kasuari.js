@@ -136,6 +136,14 @@ Kasuari.prototype = {
         return img;
     },
 
+    updateSize: function(w, h) {
+        this.cw = $(this.canvas).width();
+        this.ch = $(this.canvas).height();
+        this.canvas.width = this.cw;
+        this.canvas.height = this.ch;
+        this.redraw();
+    },
+
     redraw: function() {
         this.ctx.clearRect(0, 0, this.cw, this.ch);
 
