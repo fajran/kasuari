@@ -12,6 +12,7 @@ image, such as a world map.
 Demo
 ----
 
-* [Full Circle Magazine 26](http://labs.fajran.web.id/p/kasuari/full-circle-magazine-26/) - 69 MP
-* NASA Blue Marble - [2km/pixel world image - 233 MP](http://labs.fajran.web.id/p/kasuari/bluemarble/) - [500m/pixel - 3.7GP](http://labs.fajran.web.id/p/kasuari/bluemarble500m/)
-* [Photo Browser](http://labs.fajran.web.id/p/kasuari/flickr/) - 800 images, 1024x680px each, 557MP total
+* [Full Circle Magazine 26](http://kasuari.dahsy.at/demo/full-circle-magazine-26/) - 69 MP
+* NASA Blue Marble - [2km/pixel world image - 233 MP](http://kasuari.dahsy.at/demo/bluemarble/) - [500m/pixel - 3.7GP](http://kasuari.dahsy.at/demo/bluemarble500m/)
+* [Photo Browser](http://kasuari.dahsy.at/demo/flickr/) - 800 images, 1024x680px each, 557MP total
+
