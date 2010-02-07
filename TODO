@@ -1,0 +1,13 @@
+TODO List
+=========
+
+ * Use <img> tile instead of Canvas as an alternative way to display images. 
+   This will make browser that does not support Canvas (I'm looking at you IE!)
+   can display Kasuari.
+
+ * Make Kasuari works with Safari on iPhone OS (and Android? will someone send
+   me an Android phone please :)
+
+ * Display multiple image sets.
+
+
