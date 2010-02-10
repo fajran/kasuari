@@ -96,7 +96,8 @@ var Kasuari = function(canvas, config) {
     this.ty = 0;
 
     this.drag = {x: 0, y: 0, dx: 0, dy: 0, enabled: false};
-    this.touch = {x: 0, y: 0, moved: false, count: 0, last: new Date()};
+    this.touch = {x: 0, y: 0, x2: 0, y2: 0,
+                  moved: false, count: 0, last: new Date()};
     this.zooming = {x: 0, y: 0, scale: 0, 
                     dx: 0, dy: 0, dscale: 0, 
                     tx: 0, ty: 0, tscale: 0, 
@@ -274,6 +275,18 @@ Kasuari.prototype = {
             self._touchend(e);
             e.preventDefault();
         }, false);
+        canvas.get(0).addEventListener('gesturestart', function(e) {
+            self._gesturestart(e);
+            e.preventDefault();
+        }, false);
+        canvas.get(0).addEventListener('gesturechange', function(e) {
+            self._gesturechange(e);
+            e.preventDefault();
+        }, false);
+        canvas.get(0).addEventListener('gestureend', function(e) {
+            self._gestureend(e);
+            e.preventDefault();
+        }, false);
     },
     _mousedown: function(e) {
         this.drag.x = e.clientX;
@@ -332,17 +345,27 @@ Kasuari.prototype = {
         this.touch.moved = false;
         this.touch.x = x;
         this.touch.y = y;
-    },
 
+        if (e.targetTouches.length > 1) {
+            this.touch.x2 = e.targetTouches[1].pageX;
+            this.touch.y2 = e.targetTouches[1].pageY;
+            this.touch.moved = true;
+        }
+    },
     _touchmove: function(e) {
+        this.touch.moved = true;
+        if (e.targetTouches.length != 1) {
+            return;
+        }
         this._mousemove({
             clientX: e.targetTouches[0].pageX,
             clientY: e.targetTouches[0].pageY
         });
-        this.touch.moved = true;
     },
-
     _touchend: function(e) {
+        if (e.targetTouches.length != 0) {
+            return;
+        }
         this._mouseup();
         var last = this.touch.last;
         var now = new Date();
@@ -357,6 +380,15 @@ Kasuari.prototype = {
             this.touch.count = 0;
         }
         this.touch.last = new Date();
+    },
+    _gesturestart: function(e) {
+    },
+    _gesturechange: function(e) {
+    },
+    _gestureend: function(e) {
+        var x = (this.touch.x + this.touch.x2) / 2;
+        var y = (this.touch.y + this.touch.y2) / 2;
+        this.zoom(x, y, e.scale);
     },
 
     /* Navigation */
