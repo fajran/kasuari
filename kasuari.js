@@ -96,6 +96,7 @@ var Kasuari = function(canvas, config) {
     this.ty = 0;
 
     this.drag = {x: 0, y: 0, dx: 0, dy: 0, enabled: false};
+    this.touch = {x: 0, y: 0, moved: false, count: 0, last: new Date()};
     this.zooming = {x: 0, y: 0, scale: 0, 
                     dx: 0, dy: 0, dscale: 0, 
                     tx: 0, ty: 0, tscale: 0, 
@@ -260,6 +261,19 @@ Kasuari.prototype = {
             self._mousewheel(e, d);
             e.preventDefault();
         });
+
+        canvas.get(0).addEventListener('touchstart', function(e) {
+            self._touchstart(e);
+            e.preventDefault();
+        }, false);
+        canvas.get(0).addEventListener('touchmove', function(e) {
+            self._touchmove(e);
+            e.preventDefault();
+        }, false);
+        canvas.get(0).addEventListener('touchend', function(e) {
+            self._touchend(e);
+            e.preventDefault();
+        }, false);
     },
     _mousedown: function(e) {
         this.drag.x = e.clientX;
@@ -305,6 +319,44 @@ Kasuari.prototype = {
             this.zoom(x, y, 1/this.wheelZoomStep);
         }
         return false;
+    },
+
+    _touchstart: function(e) {
+        var x = e.targetTouches[0].pageX;
+        var y = e.targetTouches[0].pageY;
+        this._mousedown({
+            clientX: x,
+            clientY: y,
+        });
+        this.touch.count++;
+        this.touch.moved = false;
+        this.touch.x = x;
+        this.touch.y = y;
+    },
+
+    _touchmove: function(e) {
+        this._mousemove({
+            clientX: e.targetTouches[0].pageX,
+            clientY: e.targetTouches[0].pageY
+        });
+        this.touch.moved = true;
+    },
+
+    _touchend: function(e) {
+        this._mouseup();
+        var last = this.touch.last;
+        var now = new Date();
+        if (now-last >= 1000) {
+            this.touch.count = 1;
+        }
+        else if ((this.touch.count >= 2) && !this.touch.moved) {
+            this._dblclick({
+                pageX: this.touch.x,
+                pageY: this.touch.y,
+            });
+            this.touch.count = 0;
+        }
+        this.touch.last = new Date();
     },
 
     /* Navigation */
