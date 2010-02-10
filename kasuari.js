@@ -242,18 +242,23 @@ Kasuari.prototype = {
         var self = this;
         canvas.mousedown(function(e) {
             self._mousedown(e);
+            e.preventDefault();
         });
         canvas.mousemove(function(e) {
             self._mousemove(e);
+            e.preventDefault();
         });
         canvas.mouseup(function(e) {
             self._mouseup(e);
+            e.preventDefault();
         });
         canvas.dblclick(function(e) {
             self._dblclick(e);
+            e.preventDefault();
         });
         canvas.mousewheel(function(e, d) {
             self._mousewheel(e, d);
+            e.preventDefault();
         });
     },
     _mousedown: function(e) {
