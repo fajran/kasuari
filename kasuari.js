@@ -112,12 +112,20 @@ var Kasuari = function(canvas, config) {
     this.images = [];
 
     this.redrawBucket = new RedrawBucket(this);
+
+    if (typeof(this.dir) == 'string') {
+        this.dir = [this.dir];
+    }
+    this.dirLength = this.dir.length;
+    this.dirIndex = 0;
 };
 
 Kasuari.prototype = {
     getURL: function(ix, iy, iz) {
-        //return this.dir + '/img-z' + iz + '.x' + ix + '.y' + iy + this.ext;
-        return this.dir + '/' + iz + '.' + ix + '.' + iy + this.ext;
+        this.dirIndex = (this.dirIndex + 1) % this.dirLength;
+        var index = this.dirIndex % this.dirLength;
+        var dir = this.dir[index];
+        return dir + '/' + iz + '.' + ix + '.' + iy + this.ext;
     },
 
     start: function() {
